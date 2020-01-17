@@ -26,7 +26,7 @@ module.exports = {
         coordinates: [longitude, latitude]
       }
     
-      const player = await Player.create({
+      player = await Player.create({
         github_username,
         name,
         avatar_url,
