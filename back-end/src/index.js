@@ -1,6 +1,7 @@
 const dotenv = require('./utils/dotenv');
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const parser = require('body-parser');
 const routes = require('./routes');
 
@@ -11,6 +12,7 @@ mongoose.connect(`mongodb+srv://${dotenv.user}:${dotenv.pass}@cluster0-csen6.mon
   useNewUrlParser: true
 });
 
+app.use(cors())
 app.use(parser.json());
 app.use(parser.urlencoded({ extended: true }));
 app.use(express.json());
