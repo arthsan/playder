@@ -4,8 +4,12 @@ import MapView, { Marker, Callout } from 'react-native-maps';
 import { requestPermissionsAsync, getCurrentPositionAsync } from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons'
 
+import api from '../service/api';
+
 function Main({ navigation }) {
+  const [players, setPlayers] = useState([]);
   const [currentRegion, setCurrentRegion] = useState(null);
+  const [games, setGames] = useState('');
 
   useEffect(() => {
     async function loadInitialPosition() {
@@ -30,25 +34,45 @@ function Main({ navigation }) {
     loadInitialPosition();
   }, []);
 
+  async function loadPlayers() {
+    const { latitude, longitude } = currentRegion;
+
+    const response = await api.get('/search', {
+      params: {
+        latitude,
+        longitude,
+        games
+      }
+    });
+
+    setPlayers(response.data.players);
+  };
+
+  function handleRegionChanged(region) {
+    setCurrentRegion(region);
+  }
+
   if(!currentRegion) {
     return null;
   }
 
   return (
     <>
-      <MapView initialRegion={currentRegion} style={styles.map}>
-        <Marker coordinate={{ latitude:-23.5856199 , longitude: -46.666998 }}>
-          <Image style={styles.avatar} source={{ uri: "https://avatars1.githubusercontent.com/u/48763640?s=460&v=4" }} />
-          <Callout onPress={() => {
-            navigation.navigate('Profile', { github_username: 'arthsan' })
-          }}>
-            <View style={styles.callout}>
-              <Text style={styles.playerName}>Arthur Durant</Text>
-              <Text style={styles.playerBio}>Desenvolvedor apaixonado por games</Text>
-              <Text style={styles.games}>LoL, Wow</Text>
-            </View>
-          </Callout>
-        </Marker>
+      <MapView onRegionChangeComplete={handleRegionChanged} initialRegion={currentRegion} style={styles.map}>
+        {players.map(player => (
+          <Marker key={player._id} coordinate={{ latitude:player.location.coordinates[1], longitude: player.location.coordinates[0] }}>
+            <Image style={styles.avatar} source={{ uri: "https://avatars1.githubusercontent.com/u/48763640?s=460&v=4" }} />
+            <Callout onPress={() => {
+              navigation.navigate('Profile', { github_username: player.github_username })
+            }}>
+              <View style={styles.callout}>
+                <Text style={styles.playerName}>{player.name}</Text>
+                <Text style={styles.playerBio}>{player.bio}</Text>
+                <Text style={styles.games}>{player.games.join(', ')}</Text>
+              </View>
+            </Callout>
+          </Marker>
+        ))}
       </MapView>
       <View style={styles.searchForm}>
           <TextInput 
@@ -57,9 +81,11 @@ function Main({ navigation }) {
           placeholderTextColor= "#999"
           autoCapitalize="words"
           autoCorrect={false}
+          value={games}
+          onChangeText={setGames}
           />
 
-          <TouchableOpacity onPress={() => {}} style={styles.loadButton}>
+          <TouchableOpacity onPress={loadPlayers} style={styles.loadButton}>
             <MaterialIcons name="my-location" size={20} color="#FFF"/>
           </TouchableOpacity>
       </View>
