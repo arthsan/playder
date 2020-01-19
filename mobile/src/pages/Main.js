@@ -58,17 +58,29 @@ function Main({ navigation }) {
 
   return (
     <>
-      <MapView onRegionChangeComplete={handleRegionChanged} initialRegion={currentRegion} style={styles.map}>
+      <MapView 
+        onRegionChangeComplete={handleRegionChanged}
+        initialRegion={currentRegion} style={styles.map}
+      >
         {players.map(player => (
-          <Marker key={player._id} coordinate={{ latitude:player.location.coordinates[1], longitude: player.location.coordinates[0] }}>
-            <Image style={styles.avatar} source={{ uri: "https://avatars1.githubusercontent.com/u/48763640?s=460&v=4" }} />
+          <Marker 
+            key={player._id}
+            coordinate={{ 
+              latitude:player.location.coordinates[1], 
+              longitude: player.location.coordinates[0] 
+            }}
+          >
+            <Image 
+              style={styles.avatar} 
+              source={{ uri: player.avatar_url }} 
+            />
             <Callout onPress={() => {
               navigation.navigate('Profile', { github_username: player.github_username })
             }}>
               <View style={styles.callout}>
                 <Text style={styles.playerName}>{player.name}</Text>
                 <Text style={styles.playerBio}>{player.bio}</Text>
-                <Text style={styles.games}>{player.games.join(', ')}</Text>
+                <Text style={styles.playerGames}>{player.games.join(', ')}</Text>
               </View>
             </Callout>
           </Marker>
