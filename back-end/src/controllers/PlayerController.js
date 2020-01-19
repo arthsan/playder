@@ -1,6 +1,7 @@
 const axios = require('axios');
 const Player = require('../models/Player');
 const parseStringAsArray = require('../utils/parseStringAsArray');
+const { findConnections, sendMessage } = require('../websocket');
 
 module.exports = {
   async index(req, res){
@@ -34,6 +35,13 @@ module.exports = {
         games: gamesArray,
         location
       });
+
+      const sendSocketMessageTo = findConnections(
+        { latitude, longitude },
+        gamesArray
+      )
+
+      sendMessage(sendSocketMessageTo, "new-player", player);
     }
   
     

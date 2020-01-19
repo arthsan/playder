@@ -5,10 +5,11 @@ import { requestPermissionsAsync, getCurrentPositionAsync } from 'expo-location'
 import { MaterialIcons } from '@expo/vector-icons'
 
 import api from '../service/api';
+import { connect, disconnect, subscribeToNewPlayers } from '../service/socket';
 
 function Main({ navigation }) {
-  const [players, setPlayers] = useState([]);
   const [currentRegion, setCurrentRegion] = useState(null);
+  const [players, setPlayers] = useState([]);
   const [games, setGames] = useState('');
 
   useEffect(() => {
@@ -34,24 +35,41 @@ function Main({ navigation }) {
     loadInitialPosition();
   }, []);
 
-  async function loadPlayers() {
+  useEffect(() => {
+    subscribeToNewPlayers(player => setPlayers([...players, player]));
+  }, [players]);
+  
+  function setupWebsocket() {
+    disconnect();
+    
     const { latitude, longitude } = currentRegion;
-
-    const response = await api.get('/search', {
-      params: {
-        latitude,
-        longitude,
-        games
-      }
-    });
-
-    setPlayers(response.data.players);
-  };
-
-  function handleRegionChanged(region) {
-    setCurrentRegion(region);
-  }
-
+    
+    connect(
+      latitude,
+      longitude,
+      games
+      );
+    }
+    
+    async function loadPlayers() {
+      const { latitude, longitude } = currentRegion;
+      
+      const response = await api.get('/search', {
+        params: {
+          latitude,
+          longitude,
+          games
+        }
+      });
+      
+      setPlayers(response.data.players);
+      setupWebsocket();
+    };
+    
+    function handleRegionChanged(region) {
+      setCurrentRegion(region);
+    }
+    
   if(!currentRegion) {
     return null;
   }
